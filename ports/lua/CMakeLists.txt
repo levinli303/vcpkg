@@ -13,7 +13,7 @@ PROJECT ( lua )
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
 SET (HDR_LIBLUA
-src/lapi.h src/lauxlib.h src/lcode.h src/lctype.h src/ldebug.h src/ldo.h src/lfunc.h
+src/lapi.h src/lauxlib.h src/lcode.h src/ldebug.h src/ldo.h src/lfunc.h
 src/lgc.h src/llex.h src/llimits.h src/lmem.h src/lobject.h src/lopcodes.h src/lparser.h
 src/lstate.h src/lstring.h src/ltable.h src/ltm.h src/lua.h src/luaconf.h src/lualib.h
 src/lundump.h src/lvm.h src/lzio.h
@@ -21,11 +21,11 @@ src/lundump.h src/lvm.h src/lzio.h
 
 # Build Libraries
 SET (SRC_LIBLUA
-src/lapi.c src/lauxlib.c src/lbaselib.c src/lcode.c src/lcorolib.c
-src/lctype.c src/ldblib.c src/ldebug.c src/ldo.c src/ldump.c src/lfunc.c src/lgc.c
+src/lapi.c src/lauxlib.c src/lbaselib.c src/lcode.c
+src/ldblib.c src/ldebug.c src/ldo.c src/ldump.c src/lfunc.c src/lgc.c
 src/linit.c src/liolib.c src/llex.c src/lmathlib.c src/lmem.c src/loadlib.c src/lobject.c
 src/lopcodes.c src/loslib.c src/lparser.c src/lstate.c src/lstring.c src/lstrlib.c
-src/ltable.c src/ltablib.c src/ltm.c src/lundump.c src/lutf8lib.c src/lvm.c src/lzio.c
+src/ltable.c src/ltablib.c src/ltm.c src/lundump.c  src/lvm.c src/lzio.c  src/print.c
 )
 
 IF (COMPILE_AS_CPP)
@@ -79,29 +79,6 @@ INSTALL ( TARGETS lua
     ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
 )
 
-IF (NOT DEFINED SKIP_INSTALL_TOOLS)
-    ADD_EXECUTABLE ( luac src/luac.c ${SRC_LIBLUA} ) # compiler uses non-exported APIs, so must include sources directly.
-    ADD_EXECUTABLE ( luai src/lua.c )  # interpreter
-    TARGET_LINK_LIBRARIES ( luai lua )
-    SET_TARGET_PROPERTIES ( luai PROPERTIES OUTPUT_NAME lua PDB_NAME luai )
-    IF (UNIX)
-        IF (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
-            SET (_LIB_READLINE_NAME edit)
-        ELSE ()
-            SET (_LIB_READLINE_NAME readline)
-        ENDIF ()
-        FIND_LIBRARY (LIB_READLINE NAMES ${_LIB_READLINE_NAME})
-        IF (LIB_READLINE)
-            TARGET_COMPILE_DEFINITIONS (luai PUBLIC -DLUA_USE_READLINE)
-            TARGET_LINK_LIBRARIES(luai ${LIB_READLINE})
-            IF (_LIB_READLINE_NAME STREQUAL edit)
-                TARGET_INCLUDE_DIRECTORIES (luai PUBLIC /usr/include/edit)
-            ENDIF ()
-        ENDIF ()
-    ENDIF ()
-    INSTALL ( TARGETS luai luac RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/tools/lua )
-ENDIF ()
-
 IF (NOT DEFINED SKIP_INSTALL_HEADERS)
     INSTALL(
         FILES
@@ -113,6 +90,6 @@ IF (NOT DEFINED SKIP_INSTALL_HEADERS)
     )
     # If using C++, don't install extern "C" wrapper.
     IF (NOT COMPILE_AS_CPP)
-        INSTALL(FILES src/lua.hpp DESTINATION include)
+        INSTALL(FILES etc/lua.hpp DESTINATION include)
     ENDIF ()
 ENDIF ()
