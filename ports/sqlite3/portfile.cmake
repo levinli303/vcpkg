@@ -1,5 +1,5 @@
-set(SQLITE_VERSION 3350200)
-set(SQLITE_HASH fbf09a5005377d48e30a578b824aa6a99c8b0d50bdf62c4677148a4f547f936923aa3c999953d18f4c6585b807bde064cf73d8767cb1afac7a107d1234043df2)
+set(SQLITE_VERSION 3350500)
+set(SQLITE_HASH 9684fee89224f0c975c280cb6b2c64adb040334bc5517dfe0e354b0557459fa3ae642c4289a7a5265f65b3ad5b6747db8068a1e5172fbb8edec7f6d964ecbb20)
 
 vcpkg_download_distfile(ARCHIVE
     URLS "https://sqlite.org/2021/sqlite-amalgamation-${SQLITE_VERSION}.zip"
@@ -46,6 +46,10 @@ configure_file(
     ${CURRENT_PACKAGES_DIR}/share/unofficial-${PORT}/unofficial-sqlite3-config.cmake
     @ONLY
 )
+
+if(VCPKG_TARGET_IS_WINDOWS AND VCPKG_LIBRARY_LINKAGE STREQUAL "dynamic")
+    vcpkg_replace_string("${CURRENT_PACKAGES_DIR}/include/sqlite3.h" "# define SQLITE_API\n" "# define SQLITE_API __declspec(dllimport)\n")
+endif()
 
 file(WRITE ${CURRENT_PACKAGES_DIR}/share/${PORT}/copyright "SQLite is in the Public Domain.\nhttp://www.sqlite.org/copyright.html\n")
 vcpkg_copy_pdbs()
