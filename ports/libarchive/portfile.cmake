@@ -7,6 +7,7 @@ vcpkg_from_github(
     PATCHES
         fix-buildsystem.patch
         fix-deps.patch
+        always-use-utf8.patch
 )
 
 if("xar" IN_LIST FEATURES)

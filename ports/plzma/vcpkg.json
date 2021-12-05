@@ -1,0 +1,12 @@
+{
+  "name": "plzma",
+  "version-semver": "1.1.1",
+  "description": "PLzmaSDK is (Portable, Patched, Package, cross-P-latform) Lzma SDK",
+  "homepage": "https://github.com/levinli303/PLzmaSDK",
+  "dependencies": [
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    }
+  ]
+}
