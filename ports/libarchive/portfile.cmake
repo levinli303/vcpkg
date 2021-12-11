@@ -11,6 +11,7 @@ vcpkg_from_github(
         fix-dependencies.patch
         pkgconfig-modules.patch
         always-use-utf8.patch
+        multi-file-wchar.patch
 )
 
 vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS

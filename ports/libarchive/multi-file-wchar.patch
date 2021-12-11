@@ -1,0 +1,145 @@
+diff --git a/libarchive/archive.h b/libarchive/archive.h
+index ca83cbd..9c8bbd6 100644
+--- a/libarchive/archive.h
++++ b/libarchive/archive.h
+@@ -533,6 +533,8 @@ __LA_DECL int archive_read_open_filenames(struct archive *,
+ 		     const char **_filenames, size_t _block_size);
+ __LA_DECL int archive_read_open_filename_w(struct archive *,
+ 		     const wchar_t *_filename, size_t _block_size);
++__LA_DECL int archive_read_open_filenames_w(struct archive *,
++             const wchar_t **_filenames, size_t _block_size);
+ /* archive_read_open_file() is a deprecated synonym for ..._open_filename(). */
+ __LA_DECL int archive_read_open_file(struct archive *,
+ 		     const char *_filename, size_t _block_size) __LA_DEPRECATED;
+diff --git a/libarchive/archive_read_open_filename.c b/libarchive/archive_read_open_filename.c
+index 561289b..a239802 100644
+--- a/libarchive/archive_read_open_filename.c
++++ b/libarchive/archive_read_open_filename.c
+@@ -156,54 +156,75 @@ no_memory:
+ }
+ 
+ int
+-archive_read_open_filename_w(struct archive *a, const wchar_t *wfilename,
++archive_read_open_filename_w(struct archive *a, const wchar_t *filename,
+     size_t block_size)
+ {
+-	struct read_file_data *mine = (struct read_file_data *)calloc(1,
+-		sizeof(*mine) + wcslen(wfilename) * sizeof(wchar_t));
+-	if (!mine)
+-	{
+-		archive_set_error(a, ENOMEM, "No memory");
+-		return (ARCHIVE_FATAL);
+-	}
+-	mine->fd = -1;
+-	mine->block_size = block_size;
++    const wchar_t *filenames[2];
++    filenames[0] = filename;
++    filenames[1] = NULL;
++    return archive_read_open_filenames_w(a, filenames, block_size);
++}
+ 
+-	if (wfilename == NULL || wfilename[0] == L'\0') {
+-		mine->filename_type = FNT_STDIN;
+-	} else {
++int
++archive_read_open_filenames_w(struct archive *a, const wchar_t **filenames,
++    size_t block_size)
++{
++    struct read_file_data *mine;
++    const wchar_t *wfilename = NULL;
++    if (filenames)
++        wfilename = *(filenames++);
++
++    archive_clear_error(a);
++    do
++    {
++        if (wfilename == NULL)
++            wfilename = L"";
++        mine = (struct read_file_data *)calloc(1,
++            sizeof(*mine) + wcslen(wfilename) * sizeof(wchar_t));
++        if (mine == NULL)
++            goto no_memory;
++        mine->fd = -1;
++        mine->block_size = block_size;
++
++        if (wfilename == NULL || wfilename[0] == L'\0') {
++            mine->filename_type = FNT_STDIN;
++        } else {
+ #if defined(_WIN32) && !defined(__CYGWIN__)
+-		mine->filename_type = FNT_WCS;
+-		wcscpy(mine->filename.w, wfilename);
++            mine->filename_type = FNT_WCS;
++            wcscpy(mine->filename.w, wfilename);
+ #else
+-		/*
+-		 * POSIX system does not support a wchar_t interface for
+-		 * open() system call, so we have to translate a wchar_t
+-		 * filename to multi-byte one and use it.
+-		 */
+-		struct archive_string fn;
+-
+-		archive_string_init(&fn);
+-		if (archive_string_append_from_wcs(&fn, wfilename,
+-		    wcslen(wfilename)) != 0) {
+-			if (errno == ENOMEM)
+-				archive_set_error(a, errno,
+-				    "Can't allocate memory");
+-			else
+-				archive_set_error(a, EINVAL,
+-				    "Failed to convert a wide-character"
+-				    " filename to a multi-byte filename");
+-			archive_string_free(&fn);
+-			free(mine);
+-			return (ARCHIVE_FATAL);
+-		}
+-		mine->filename_type = FNT_MBS;
+-		strcpy(mine->filename.m, fn.s);
+-		archive_string_free(&fn);
++            /*
++             * POSIX system does not support a wchar_t interface for
++             * open() system call, so we have to translate a wchar_t
++             * filename to multi-byte one and use it.
++             */
++            struct archive_string fn;
++
++            archive_string_init(&fn);
++            if (archive_string_append_from_wcs(&fn, wfilename,
++                wcslen(wfilename)) != 0) {
++                if (errno == ENOMEM)
++                    archive_set_error(a, errno,
++                        "Can't allocate memory");
++                else
++                    archive_set_error(a, EINVAL,
++                        "Failed to convert a wide-character"
++                        " filename to a multi-byte filename");
++                archive_string_free(&fn);
++                free(mine);
++                return (ARCHIVE_FATAL);
++            }
++            mine->filename_type = FNT_MBS;
++            strcpy(mine->filename.m, fn.s);
++            archive_string_free(&fn);
+ #endif
+-	}
+-	if (archive_read_append_callback_data(a, mine) != (ARCHIVE_OK))
+-		return (ARCHIVE_FATAL);
++        }
++        if (archive_read_append_callback_data(a, mine) != (ARCHIVE_OK))
++            return (ARCHIVE_FATAL);
++        if (filenames == NULL)
++            break;
++        wfilename = *(filenames++);
++    } while (wfilename != NULL && wfilename[0] != L'\0');
+ 	archive_read_set_open_callback(a, file_open);
+ 	archive_read_set_read_callback(a, file_read);
+ 	archive_read_set_skip_callback(a, file_skip);
+@@ -212,6 +233,9 @@ archive_read_open_filename_w(struct archive *a, const wchar_t *wfilename,
+ 	archive_read_set_seek_callback(a, file_seek);
+ 
+ 	return (archive_read_open1(a));
++no_memory:
++    archive_set_error(a, ENOMEM, "No memory");
++    return (ARCHIVE_FATAL);
+ }
+ 
+ static int
