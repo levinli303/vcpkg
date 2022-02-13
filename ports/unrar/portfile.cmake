@@ -1,5 +1,5 @@
-set(UNRAR_VERSION "7.0.7")
-set(UNRAR_SHA512 7151a42742d4c34a8f03c58dae471f80788b76adbb52188759b7fc7357757f88fa9d980de006ce48732c40f326b92b79fb069e807c2b66d4387ee60433a8accb)
+set(UNRAR_VERSION "7.0.9")
+set(UNRAR_SHA512 4dff760bd69275dcd9bacac7a8fa9a6e68e2d047ea3775abc16a80d9a6e277b686153faafb1b711582d86eabfdf3254c601d9f585b28104dbd85ece4868876ed)
 set(UNRAR_FILENAME unrarsrc-${UNRAR_VERSION}.tar.gz)
 set(UNRAR_URL https://www.rarlab.com/rar/${UNRAR_FILENAME})
 
@@ -15,6 +15,8 @@ vcpkg_extract_source_archive(
     SOURCE_PATH
     ARCHIVE "${ARCHIVE}"
     SOURCE_BASE ${UNRAR_VERSION}
+    PATCHES
+        fix-unrar.patch
 )
 
 vcpkg_msbuild_install(
