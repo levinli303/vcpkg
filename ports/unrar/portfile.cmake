@@ -9,6 +9,9 @@ vcpkg_extract_source_archive(
     SOURCE_PATH
     ARCHIVE "${ARCHIVE}"
     SOURCE_BASE ${VERSION}
+    PATCHES
+        fix-unrar.patch
+        windows-arm64.patch
 )
 
 vcpkg_msbuild_install(
