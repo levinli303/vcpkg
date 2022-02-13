@@ -1,0 +1,113 @@
+diff --git a/cmddata.cpp b/cmddata.cpp
+index 82d24f4..f1e7c09 100644
+--- a/cmddata.cpp
++++ b/cmddata.cpp
+@@ -3,7 +3,7 @@
+ #include "cmdfilter.cpp"
+ #include "cmdmix.cpp"
+ 
+-CommandData::CommandData()
++CommandData::CommandData() : RAROptions()
+ {
+   Init();
+ }
+@@ -11,8 +11,6 @@ CommandData::CommandData()
+ 
+ void CommandData::Init()
+ {
+-  RAROptions::Init();
+-
+   *Command=0;
+   *ArcName=0;
+   FileLists=false;
+diff --git a/crc.cpp b/crc.cpp
+index 0e5e132..cdc606e 100644
+--- a/crc.cpp
++++ b/crc.cpp
+@@ -21,7 +21,7 @@
+ #endif
+ 
+ static uint crc_tables[8][256]; // Tables for Slicing-by-8.
+-
++static bool isCRCTableInitialized = false;
+ 
+ // Build the classic CRC32 lookup table.
+ // We also provide this function to legacy RAR and ZIP decryption code.
+@@ -39,8 +39,11 @@ void InitCRC32(uint *CRCTab)
+ }
+ 
+ 
+-static void InitTables()
++static void InitTablesIfNeeded()
+ {
++  if (isCRCTableInitialized)
++    return;
++
+   InitCRC32(crc_tables[0]);
+ 
+ #ifdef USE_SLICING
+@@ -53,14 +56,14 @@ static void InitTables()
+       crc_tables[J][I]=C;
+     }
+   }
++  isCRCTableInitialized = true;
+ #endif
+ }
+ 
+ 
+-struct CallInitCRC {CallInitCRC() {InitTables();}} static CallInit32;
+-
+ uint CRC32(uint StartCRC,const void *Addr,size_t Size)
+ {
++  InitTablesIfNeeded();
+   byte *Data=(byte *)Addr;
+ 
+ #ifdef USE_SLICING
+diff --git a/secpassword.cpp b/secpassword.cpp
+index b99e53a..48ed133 100644
+--- a/secpassword.cpp
++++ b/secpassword.cpp
+@@ -51,7 +51,7 @@ class CryptLoader
+ };
+ 
+ // We need to call FreeLibrary when RAR is exiting.
+-static CryptLoader GlobalCryptLoader;
++static CryptLoader *pGlobalCryptLoader = nullptr;
+ #endif
+ 
+ SecPassword::SecPassword()
+@@ -168,16 +168,18 @@ void SecHideData(void *Data,size_t DataSize,bool Encode,bool CrossProcess)
+   // CryptProtectMemory is not available in UWP and CryptProtectData
+   // increases data size not allowing in place conversion.
+ #if defined(_WIN_ALL)
++  if (!pGlobalCryptLoader)
++    pGlobalCryptLoader = new CryptLoader;
+   // Try to utilize the secure Crypt[Un]ProtectMemory if possible.
+-  if (GlobalCryptLoader.pCryptProtectMemory==NULL)
+-    GlobalCryptLoader.Load();
++  if (pGlobalCryptLoader->pCryptProtectMemory==NULL)
++    pGlobalCryptLoader->Load();
+   size_t Aligned=DataSize-DataSize%CRYPTPROTECTMEMORY_BLOCK_SIZE;
+   DWORD Flags=CrossProcess ? CRYPTPROTECTMEMORY_CROSS_PROCESS : CRYPTPROTECTMEMORY_SAME_PROCESS;
+   if (Encode)
+   {
+-    if (GlobalCryptLoader.pCryptProtectMemory!=NULL)
++    if (pGlobalCryptLoader->pCryptProtectMemory!=NULL)
+     {
+-      if (!GlobalCryptLoader.pCryptProtectMemory(Data,DWORD(Aligned),Flags))
++      if (!pGlobalCryptLoader->pCryptProtectMemory(Data,DWORD(Aligned),Flags))
+       {
+         ErrHandler.GeneralErrMsg(L"CryptProtectMemory failed");
+         ErrHandler.SysErrMsg();
+@@ -188,9 +190,9 @@ void SecHideData(void *Data,size_t DataSize,bool Encode,bool CrossProcess)
+   }
+   else
+   {
+-    if (GlobalCryptLoader.pCryptUnprotectMemory!=NULL)
++    if (pGlobalCryptLoader->pCryptUnprotectMemory!=NULL)
+     {
+-      if (!GlobalCryptLoader.pCryptUnprotectMemory(Data,DWORD(Aligned),Flags))
++      if (!pGlobalCryptLoader->pCryptUnprotectMemory(Data,DWORD(Aligned),Flags))
+       {
+         ErrHandler.GeneralErrMsg(L"CryptUnprotectMemory failed");
+         ErrHandler.SysErrMsg();
