@@ -12,6 +12,7 @@ vcpkg_from_sourceforge(
         bzip2.patch
         fix-exports.patch
         error-strings.patch
+        uwp-create-file-fix.patch
 )
 
 vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
