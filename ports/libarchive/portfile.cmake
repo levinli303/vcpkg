@@ -66,7 +66,7 @@ vcpkg_cmake_configure(
         -DENABLE_NETTLE=OFF
         -DENABLE_EXPAT=OFF
         -DENABLE_LibGCC=OFF
-        -DENABLE_CNG=OFF
+        -DENABLE_CNG=ON
         -DENABLE_UNZIP=OFF
         -DENABLE_TAR=OFF
         -DENABLE_CPIO=OFF
