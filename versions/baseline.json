@@ -1850,7 +1850,7 @@
     },
     "cspice": {
       "baseline": "67",
-      "port-version": 2
+      "port-version": 1
     },
     "ctbignum": {
       "baseline": "2019-08-02",
