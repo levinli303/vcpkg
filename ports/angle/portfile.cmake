@@ -46,6 +46,8 @@ vcpkg_from_github(
         001-fix-uwp.patch
         002-fix-builder-error.patch
         003-fix-mingw.patch
+        004-winui.patch
+        005-treat-uwp-as-win.patch
 )
 
 # Generate angle_commit.h
@@ -150,6 +152,57 @@ checkout_in_path(
     "${ANGLE_THIRDPARTY_ZLIB_COMMIT}"
 )
 
+set(WINDOWS_APP_SDK_VERSION 1.3.230602002)
+
+vcpkg_find_acquire_program(NUGET)
+vcpkg_execute_required_process(COMMAND ${NUGET} install Microsoft.WindowsAppSDK
+        -Version ${WINDOWS_APP_SDK_VERSION} 
+        -OutputDirectory ${SOURCE_PATH}/WindowsAppSDK
+    WORKING_DIRECTORY ${SOURCE_PATH}
+)
+
+vcpkg_execute_required_process(COMMAND winmdidl /nologo /outdir:.
+        ../lib/uap10.0.18362/Microsoft.Foundation.winmd
+    WORKING_DIRECTORY ${SOURCE_PATH}/WindowsAppSDK/Microsoft.WindowsAppSDK.${WINDOWS_APP_SDK_VERSION}/include
+)
+
+vcpkg_execute_required_process(COMMAND winmdidl /nologo /outdir:.
+        ../lib/uap10.0.18362/Microsoft.Graphics.winmd
+    WORKING_DIRECTORY ${SOURCE_PATH}/WindowsAppSDK/Microsoft.WindowsAppSDK.${WINDOWS_APP_SDK_VERSION}/include
+)
+
+vcpkg_execute_required_process(COMMAND winmdidl /nologo /outdir:.
+        ../lib/uap10.0.18362/Microsoft.UI.winmd
+    WORKING_DIRECTORY ${SOURCE_PATH}/WindowsAppSDK/Microsoft.WindowsAppSDK.${WINDOWS_APP_SDK_VERSION}/include
+)
+
+vcpkg_execute_required_process(COMMAND winmdidl /nologo /outdir:.
+        ../lib/uap10.0/Microsoft.UI.Text.winmd
+    WORKING_DIRECTORY ${SOURCE_PATH}/WindowsAppSDK/Microsoft.WindowsAppSDK.${WINDOWS_APP_SDK_VERSION}/include
+)
+
+vcpkg_execute_required_process(COMMAND winmdidl /nologo /outdir:.
+        ../lib/uap10.0/Microsoft.Web.WebView2.Core.winmd
+    WORKING_DIRECTORY ${SOURCE_PATH}/WindowsAppSDK/Microsoft.WindowsAppSDK.${WINDOWS_APP_SDK_VERSION}/include
+)
+
+vcpkg_execute_required_process(COMMAND winmdidl /nologo /outdir:.
+        ../lib/uap10.0/Microsoft.UI.Xaml.winmd
+    WORKING_DIRECTORY ${SOURCE_PATH}/WindowsAppSDK/Microsoft.WindowsAppSDK.${WINDOWS_APP_SDK_VERSION}/include
+)
+
+file(GLOB IDL_FILES "${SOURCE_PATH}/WindowsAppSDK/Microsoft.WindowsAppSDK.${WINDOWS_APP_SDK_VERSION}/include/*.idl")
+list(FILTER IDL_FILES EXCLUDE REGEX "Microsoft.Windows.ApplicationModel.Resources.idl")
+foreach(IDL_FILE ${IDL_FILES})
+    get_filename_component(IDL_FILE_NAME "${IDL_FILE}" NAME)
+    vcpkg_execute_required_process(COMMAND midlrt ${IDL_FILE_NAME} /metadata_dir C:\\Windows\\System32\\WinMetadata /ns_prefix /nomidl
+        WORKING_DIRECTORY ${SOURCE_PATH}/WindowsAppSDK/Microsoft.WindowsAppSDK.${WINDOWS_APP_SDK_VERSION}/include
+    )
+endforeach()
+
+file(RENAME ${SOURCE_PATH}/WindowsAppSDK/Microsoft.WindowsAppSDK.${WINDOWS_APP_SDK_VERSION}/include ${SOURCE_PATH}/WindowsAppSDK/include)
+file(RENAME ${SOURCE_PATH}/WindowsAppSDK/Microsoft.WindowsAppSDK.${WINDOWS_APP_SDK_VERSION}/lib/win10-${VCPKG_TARGET_ARCHITECTURE} ${SOURCE_PATH}/WindowsAppSDK/lib)
+
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS_DEBUG -DDISABLE_INSTALL_HEADERS=1
@@ -182,5 +235,7 @@ endforeach()
 unset(subdirectory_children)
 unset(directory_child)
 unset(directory_children)
+
+file(INSTALL "${SOURCE_PATH}/include/angle_windowsstore.h" DESTINATION "${CURRENT_PACKAGES_DIR}/include")
 
 file(INSTALL "${CMAKE_CURRENT_LIST_DIR}/usage" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}")

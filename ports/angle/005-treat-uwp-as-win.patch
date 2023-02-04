@@ -1,0 +1,67 @@
+diff --git a/BUILD.gn b/BUILD.gn
+index 66b54bd..8f823b7 100644
+--- a/BUILD.gn
++++ b/BUILD.gn
+@@ -339,9 +339,6 @@ config("includes_config") {
+ }
+ 
+ config("angle_uwp_env") {
+-  if (angle_is_winuwp) {
+-    defines = [ "WINAPI_FAMILY=WINAPI_FAMILY_PC_APP" ]
+-  }
+ }
+ 
+ angle_source_set("cl_includes") {
+diff --git a/gni/angle.gni b/gni/angle.gni
+index 81cf56c..33ba624 100644
+--- a/gni/angle.gni
++++ b/gni/angle.gni
+@@ -242,8 +242,7 @@ declare_args() {
+ 
+   # ISpriteVisual windows cannot be validated and can lead to crashes if an invalid window is
+   # provided to ANGLE. Disable them for non-standalone ANGLE builds. crbug.com/1176118
+-  angle_enable_d3d11_compositor_native_window =
+-      angle_enable_d3d11 && angle_standalone
++  angle_enable_d3d11_compositor_native_window = false
+ 
+   # Disable performance counter output by default
+   angle_enable_perf_counter_output = false
+diff --git a/src/libANGLE/renderer/d3d/BUILD.gn b/src/libANGLE/renderer/d3d/BUILD.gn
+index 26ae1d8..56fbb98 100644
+--- a/src/libANGLE/renderer/d3d/BUILD.gn
++++ b/src/libANGLE/renderer/d3d/BUILD.gn
+@@ -256,8 +256,6 @@ if (angle_enable_d3d11) {
+ 
+   if (angle_is_winuwp) {
+     _d3d11_backend_sources += [
+-      "d3d11/winrt/CoreWindowNativeWindow.cpp",
+-      "d3d11/winrt/CoreWindowNativeWindow.h",
+       "d3d11/winrt/InspectableNativeWindow.cpp",
+       "d3d11/winrt/InspectableNativeWindow.h",
+       "d3d11/winrt/NativeWindow11WinRT.cpp",
+@@ -284,6 +282,8 @@ if (angle_enable_d3d11) {
+ 
+ config("angle_d3d_shared_config") {
+   defines = [ "ANGLE_PRELOADED_D3DCOMPILER_MODULE_NAMES={ " + "\"d3dcompiler_47.dll\", \"d3dcompiler_46.dll\", \"d3dcompiler_43.dll\" }" ]
++  include_dirs = [ "../../../../WindowsAppSDK/include" ]
++  lib_dirs = [ "../../../../WindowsAppSDK/lib" ]
+ }
+ 
+ angle_source_set("angle_d3d_shared") {
+@@ -325,14 +325,14 @@ if (angle_enable_d3d11) {
+   angle_source_set("angle_d3d11_backend") {
+     sources = _d3d11_backend_sources
+ 
+-    libs = [ "dxguid.lib" ]
++    libs = [ "dxguid.lib", "WindowsApp.lib", "Microsoft.WindowsAppRuntime.Bootstrap.lib", "Microsoft.WindowsAppRuntime.lib" ]
+ 
+     public_deps = [ ":angle_d3d_shared" ]
+     public_configs = [ ":angle_d3d11_backend_config" ]
+   }
+ 
+   config("angle_enable_winuwp_config") {
+-    defines = [ "ANGLE_ENABLE_WINDOWS_UWP 1" ]
++    defines = [ "ANGLE_ENABLE_WINDOWS_UWP=1" ]
+   }
+ 
+   angle_source_set("angle_enable_winuwp") {

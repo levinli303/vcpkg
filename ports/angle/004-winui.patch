@@ -1,0 +1,260 @@
+diff --git a/src/libANGLE/renderer/d3d/d3d11/winrt/InspectableNativeWindow.cpp b/src/libANGLE/renderer/d3d/d3d11/winrt/InspectableNativeWindow.cpp
+index 0317120..dc49e92 100644
+--- a/src/libANGLE/renderer/d3d/d3d11/winrt/InspectableNativeWindow.cpp
++++ b/src/libANGLE/renderer/d3d/d3d11/winrt/InspectableNativeWindow.cpp
+@@ -7,44 +7,21 @@
+ // InspectableNativeWindow.cpp: NativeWindow base class for managing IInspectable native window
+ // types.
+ 
+-#include "libANGLE/renderer/d3d/d3d11/winrt/CoreWindowNativeWindow.h"
+ #include "libANGLE/renderer/d3d/d3d11/winrt/SwapChainPanelNativeWindow.h"
+ 
+ namespace rx
+ {
+ 
+-bool IsCoreWindow(EGLNativeWindowType window,
+-                  ComPtr<ABI::Windows::UI::Core::ICoreWindow> *coreWindow)
+-{
+-    if (!window)
+-    {
+-        return false;
+-    }
+-
+-    ComPtr<IInspectable> win = reinterpret_cast<IInspectable *>(window);
+-    ComPtr<ABI::Windows::UI::Core::ICoreWindow> coreWin;
+-    if (SUCCEEDED(win.As(&coreWin)))
+-    {
+-        if (coreWindow != nullptr)
+-        {
+-            *coreWindow = coreWin;
+-        }
+-        return true;
+-    }
+-
+-    return false;
+-}
+-
+ bool IsSwapChainPanel(EGLNativeWindowType window,
+-                      ComPtr<ABI::Windows::UI::Xaml::Controls::ISwapChainPanel> *swapChainPanel)
++                      ComPtr<ABI::Microsoft::UI::Xaml::Controls::ISwapChainPanel> *swapChainPanel)
+ {
+     if (!window)
+     {
+         return false;
+     }
+ 
+-    ComPtr<IInspectable> win = window;
+-    ComPtr<ABI::Windows::UI::Xaml::Controls::ISwapChainPanel> panel;
++    ComPtr<IInspectable> win = reinterpret_cast<IInspectable*>(window);
++    ComPtr<ABI::Microsoft::UI::Xaml::Controls::ISwapChainPanel> panel;
+     if (SUCCEEDED(win.As(&panel)))
+     {
+         if (swapChainPanel != nullptr)
+@@ -66,7 +43,7 @@ bool IsEGLConfiguredPropertySet(EGLNativeWindowType window,
+         return false;
+     }
+ 
+-    ComPtr<IInspectable> props = window;
++    ComPtr<IInspectable> props = reinterpret_cast<IInspectable*>(window);
+     ComPtr<IPropertySet> propSet;
+     ComPtr<IInspectable> nativeWindow;
+     ComPtr<ABI::Windows::Foundation::Collections::IMap<HSTRING, IInspectable *>> propMap;
+diff --git a/src/libANGLE/renderer/d3d/d3d11/winrt/InspectableNativeWindow.h b/src/libANGLE/renderer/d3d/d3d11/winrt/InspectableNativeWindow.h
+index 64016b0..c0985ec 100644
+--- a/src/libANGLE/renderer/d3d/d3d11/winrt/InspectableNativeWindow.h
++++ b/src/libANGLE/renderer/d3d/d3d11/winrt/InspectableNativeWindow.h
+@@ -19,8 +19,9 @@
+ 
+ #include <windows.applicationmodel.core.h>
+ #undef GetCurrentTime
+-#include <windows.ui.xaml.h>
+-#include <windows.ui.xaml.media.dxinterop.h>
++#include <microsoft.ui.dispatching.h>
++#include <microsoft.ui.xaml.h>
++#include <microsoft.ui.xaml.media.dxinterop.h>
+ #include <wrl.h>
+ #include <wrl/wrappers/corewrappers.h>
+ 
+@@ -118,11 +119,9 @@ class InspectableNativeWindow
+     EventRegistrationToken mSizeChangedEventToken;
+ };
+ 
+-bool IsCoreWindow(EGLNativeWindowType window,
+-                  ComPtr<ABI::Windows::UI::Core::ICoreWindow> *coreWindow = nullptr);
+ bool IsSwapChainPanel(
+     EGLNativeWindowType window,
+-    ComPtr<ABI::Windows::UI::Xaml::Controls::ISwapChainPanel> *swapChainPanel = nullptr);
++    ComPtr<ABI::Microsoft::UI::Xaml::Controls::ISwapChainPanel> *swapChainPanel = nullptr);
+ bool IsEGLConfiguredPropertySet(
+     EGLNativeWindowType window,
+     ABI::Windows::Foundation::Collections::IPropertySet **propertySet = nullptr,
+diff --git a/src/libANGLE/renderer/d3d/d3d11/winrt/NativeWindow11WinRT.cpp b/src/libANGLE/renderer/d3d/d3d11/winrt/NativeWindow11WinRT.cpp
+index 9857d15..18e6131 100644
+--- a/src/libANGLE/renderer/d3d/d3d11/winrt/NativeWindow11WinRT.cpp
++++ b/src/libANGLE/renderer/d3d/d3d11/winrt/NativeWindow11WinRT.cpp
+@@ -9,7 +9,6 @@
+ #include "libANGLE/renderer/d3d/d3d11/winrt/NativeWindow11WinRT.h"
+ 
+ #include "libANGLE/renderer/d3d/d3d11/renderer11_utils.h"
+-#include "libANGLE/renderer/d3d/d3d11/winrt/CoreWindowNativeWindow.h"
+ #include "libANGLE/renderer/d3d/d3d11/winrt/InspectableNativeWindow.h"
+ #include "libANGLE/renderer/d3d/d3d11/winrt/SwapChainPanelNativeWindow.h"
+ 
+@@ -41,17 +40,8 @@ bool NativeWindow11WinRT::initialize()
+         window = reinterpret_cast<EGLNativeWindowType>(eglNativeWindow.Get());
+     }
+ 
+-    ComPtr<ABI::Windows::UI::Core::ICoreWindow> coreWindow;
+-    ComPtr<ABI::Windows::UI::Xaml::Controls::ISwapChainPanel> swapChainPanel;
+-    if (IsCoreWindow(window, &coreWindow))
+-    {
+-        mImpl = std::make_shared<CoreWindowNativeWindow>();
+-        if (mImpl)
+-        {
+-            return mImpl->initialize(window, propertySet.Get());
+-        }
+-    }
+-    else if (IsSwapChainPanel(window, &swapChainPanel))
++    ComPtr<ABI::Microsoft::UI::Xaml::Controls::ISwapChainPanel> swapChainPanel;
++    if (IsSwapChainPanel(window, &swapChainPanel))
+     {
+         mImpl = std::make_shared<SwapChainPanelNativeWindow>();
+         if (mImpl)
+@@ -123,7 +113,7 @@ bool NativeWindow11WinRT::IsValidNativeWindow(EGLNativeWindowType window)
+     // IPropertySet
+     //
+     // Anything else will be rejected as an invalid IInspectable.
+-    return IsCoreWindow(window) || IsSwapChainPanel(window) || IsEGLConfiguredPropertySet(window);
++    return IsSwapChainPanel(window) || IsEGLConfiguredPropertySet(window);
+ }
+ 
+ }  // namespace rx
+diff --git a/src/libANGLE/renderer/d3d/d3d11/winrt/SwapChainPanelNativeWindow.cpp b/src/libANGLE/renderer/d3d/d3d11/winrt/SwapChainPanelNativeWindow.cpp
+index a90f0bc..e9630a9 100644
+--- a/src/libANGLE/renderer/d3d/d3d11/winrt/SwapChainPanelNativeWindow.cpp
++++ b/src/libANGLE/renderer/d3d/d3d11/winrt/SwapChainPanelNativeWindow.cpp
+@@ -13,8 +13,8 @@
+ 
+ using namespace ABI::Windows::Foundation;
+ using namespace ABI::Windows::Foundation::Collections;
+-using namespace ABI::Windows::UI::Core;
+-using namespace ABI::Windows::UI::Xaml;
++using namespace ABI::Microsoft::UI::Dispatching;
++using namespace ABI::Microsoft::UI::Xaml;
+ using namespace Microsoft::WRL;
+ 
+ namespace rx
+@@ -31,13 +31,14 @@ struct AddFtmBase
+ };
+ 
+ template <typename CODE>
+-HRESULT RunOnUIThread(CODE &&code, const ComPtr<ICoreDispatcher> &dispatcher)
++HRESULT RunOnUIThread(CODE &&code, const ComPtr<IDispatcherQueue> &dispatcher)
+ {
+-    ComPtr<IAsyncAction> asyncAction;
+     HRESULT result = S_OK;
+ 
+     boolean hasThreadAccess;
+-    result = dispatcher->get_HasThreadAccess(&hasThreadAccess);
++    ComPtr<IDispatcherQueue2> dispatcher2;
++    dispatcher.As(&dispatcher2);
++    result = dispatcher2->get_HasThreadAccess(&hasThreadAccess);
+     if (FAILED(result))
+     {
+         return result;
+@@ -57,15 +58,13 @@ HRESULT RunOnUIThread(CODE &&code, const ComPtr<ICoreDispatcher> &dispatcher)
+         }
+ 
+         HRESULT codeResult = E_FAIL;
+-        auto handler =
+-            Callback<AddFtmBase<IDispatchedHandler>::Type>([&codeResult, &code, &waitEvent] {
+-                codeResult = code();
+-                SetEvent(waitEvent.Get());
+-                return S_OK;
+-            });
+-
+-        result = dispatcher->RunAsync(CoreDispatcherPriority_Normal, handler.Get(),
+-                                      asyncAction.GetAddressOf());
++        auto handler = Callback<AddFtmBase<IDispatcherQueueHandler>::Type>([&codeResult, &code, &waitEvent] {
++            codeResult = code();
++            SetEvent(waitEvent.Get());
++            return S_OK;
++        });
++        boolean enqueued;
++        result = dispatcher->TryEnqueueWithPriority(DispatcherQueuePriority_Normal, handler.Get(), &enqueued);
+         if (FAILED(result))
+         {
+             return result;
+@@ -91,7 +90,7 @@ HRESULT RunOnUIThread(CODE &&code, const ComPtr<ICoreDispatcher> &dispatcher)
+ bool SwapChainPanelNativeWindow::initialize(EGLNativeWindowType window, IPropertySet *propertySet)
+ {
+     ComPtr<IPropertySet> props = propertySet;
+-    ComPtr<IInspectable> win   = window;
++    ComPtr<IInspectable> win   = reinterpret_cast<IInspectable*>(window);
+     SIZE swapChainSize         = {};
+     HRESULT result             = S_OK;
+ 
+@@ -155,7 +154,7 @@ bool SwapChainPanelNativeWindow::initialize(EGLNativeWindowType window, IPropert
+ 
+     if (SUCCEEDED(result))
+     {
+-        result = swapChainPanelDependencyObject->get_Dispatcher(
++        result = swapChainPanelDependencyObject->get_DispatcherQueue(
+             mSwapChainPanelDispatcher.GetAddressOf());
+     }
+ 
+@@ -343,8 +342,8 @@ HRESULT SwapChainPanelNativeWindow::scaleSwapChain(const Size &windowSize, const
+ }
+ 
+ HRESULT GetSwapChainPanelSize(
+-    const ComPtr<ABI::Windows::UI::Xaml::Controls::ISwapChainPanel> &swapChainPanel,
+-    const ComPtr<ICoreDispatcher> &dispatcher,
++    const ComPtr<ABI::Microsoft::UI::Xaml::Controls::ISwapChainPanel> &swapChainPanel,
++    const ComPtr<IDispatcherQueue> &dispatcher,
+     Size *windowSize)
+ {
+     ComPtr<IUIElement> uiElement;
+diff --git a/src/libANGLE/renderer/d3d/d3d11/winrt/SwapChainPanelNativeWindow.h b/src/libANGLE/renderer/d3d/d3d11/winrt/SwapChainPanelNativeWindow.h
+index 21608f0..b934b40 100644
+--- a/src/libANGLE/renderer/d3d/d3d11/winrt/SwapChainPanelNativeWindow.h
++++ b/src/libANGLE/renderer/d3d/d3d11/winrt/SwapChainPanelNativeWindow.h
+@@ -37,8 +37,8 @@ class SwapChainPanelNativeWindow : public InspectableNativeWindow,
+     void unregisterForSizeChangeEvents();
+ 
+   private:
+-    ComPtr<ABI::Windows::UI::Xaml::Controls::ISwapChainPanel> mSwapChainPanel;
+-    ComPtr<ABI::Windows::UI::Core::ICoreDispatcher> mSwapChainPanelDispatcher;
++    ComPtr<ABI::Microsoft::UI::Xaml::Controls::ISwapChainPanel> mSwapChainPanel;
++    ComPtr<ABI::Microsoft::UI::Dispatching::IDispatcherQueue> mSwapChainPanelDispatcher;
+     ComPtr<IMap<HSTRING, IInspectable *>> mPropertyMap;
+     ComPtr<IDXGISwapChain1> mSwapChain;
+ };
+@@ -46,7 +46,7 @@ class SwapChainPanelNativeWindow : public InspectableNativeWindow,
+ __declspec(uuid("8ACBD974-8187-4508-AD80-AEC77F93CF36")) class SwapChainPanelSizeChangedHandler
+     : public Microsoft::WRL::RuntimeClass<
+           Microsoft::WRL::RuntimeClassFlags<Microsoft::WRL::ClassicCom>,
+-          ABI::Windows::UI::Xaml::ISizeChangedEventHandler>
++          ABI::Microsoft::UI::Xaml::ISizeChangedEventHandler>
+ {
+   public:
+     SwapChainPanelSizeChangedHandler() {}
+@@ -63,7 +63,7 @@ __declspec(uuid("8ACBD974-8187-4508-AD80-AEC77F93CF36")) class SwapChainPanelSiz
+ 
+     // ISizeChangedEventHandler
+     IFACEMETHOD(Invoke)
+-    (IInspectable *sender, ABI::Windows::UI::Xaml::ISizeChangedEventArgs *sizeChangedEventArgs)
++    (IInspectable *sender, ABI::Microsoft::UI::Xaml::ISizeChangedEventArgs *sizeChangedEventArgs)
+     {
+         std::shared_ptr<InspectableNativeWindow> host = mHost.lock();
+         if (host)
+@@ -89,8 +89,8 @@ __declspec(uuid("8ACBD974-8187-4508-AD80-AEC77F93CF36")) class SwapChainPanelSiz
+ };
+ 
+ HRESULT GetSwapChainPanelSize(
+-    const ComPtr<ABI::Windows::UI::Xaml::Controls::ISwapChainPanel> &swapChainPanel,
+-    const ComPtr<ABI::Windows::UI::Core::ICoreDispatcher> &dispatcher,
++    const ComPtr<ABI::Microsoft::UI::Xaml::Controls::ISwapChainPanel> &swapChainPanel,
++    const ComPtr<ABI::Microsoft::UI::Dispatching::IDispatcherQueue> &dispatcher,
+     Size *windowSize);
+ }  // namespace rx
+ #endif  // LIBANGLE_RENDERER_D3D_D3D11_WINRT_SWAPCHAINPANELNATIVEWINDOW_H_
