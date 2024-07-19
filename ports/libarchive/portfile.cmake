@@ -10,6 +10,7 @@ vcpkg_from_github(
         fix-cpu-set.patch
         fix-deps.patch
         always-use-utf8.patch
+        end-of-file.patch
 )
 
 vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
