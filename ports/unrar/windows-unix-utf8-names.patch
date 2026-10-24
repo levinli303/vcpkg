@@ -1,0 +1,23 @@
+diff --git a/arcread.cpp b/arcread.cpp
+index 48ea9ea..ae5bc7f 100644
+--- a/arcread.cpp
++++ b/arcread.cpp
+@@ -357,7 +357,17 @@ size_t Archive::ReadHeader15()
+           }
+ 
+           if (hd->FileName.empty())
+-            ArcCharToWide(FileName.data(),hd->FileName,ACTW_OEM);
++          {
++            ACTW_ENCODING NameEncoding=ACTW_OEM;
++#ifdef _WIN_ALL
++            // Unix RAR3 names can contain UTF-8 without the Unicode flag.
++            if (hd->HostOS==HOST_UNIX && (hd->Flags & LHD_UNICODE)==0 &&
++                MultiByteToWideChar(CP_UTF8,MB_ERR_INVALID_CHARS,
++                                   FileName.c_str(),-1,nullptr,0)!=0)
++              NameEncoding=ACTW_UTF8;
++#endif
++            ArcCharToWide(FileName.data(),hd->FileName,NameEncoding);
++          }
+ 
+ #ifndef SFX_MODULE
+           ConvertNameCase(hd->FileName);

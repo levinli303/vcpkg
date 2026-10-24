@@ -1,0 +1,16 @@
+diff --git a/arcread.cpp b/arcread.cpp
+index 3aaffb7..48ea9ea 100644
+--- a/arcread.cpp
++++ b/arcread.cpp
+@@ -511,7 +511,10 @@ size_t Archive::ReadHeader15()
+       break;
+   }
+ 
+-  uint HeaderCRC=Raw.GetCRC15(false);
++  // Like above, the CRC of file headers with an old style comment doesn't include the comment.
++  bool CRCProcessedOnly=(ShortBlock.HeaderType==HEAD_FILE || ShortBlock.HeaderType==HEAD_SERVICE) &&
++                        (ShortBlock.Flags & LHD_COMMENT)!=0;
++  uint HeaderCRC=Raw.GetCRC15(CRCProcessedOnly);
+ 
+   // Old AV header does not have header CRC properly set.
+   // Old Unix owners header didn't include string fields into header size,

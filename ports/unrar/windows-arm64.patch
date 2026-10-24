@@ -1,0 +1,281 @@
+diff --git a/UnRARDll.vcxproj b/UnRARDll.vcxproj
+index d96e4d1..784f6f5 100644
+--- a/UnRARDll.vcxproj
++++ b/UnRARDll.vcxproj
+@@ -9,6 +9,10 @@
+       <Configuration>Debug</Configuration>
+       <Platform>x64</Platform>
+     </ProjectConfiguration>
++    <ProjectConfiguration Include="Debug|ARM64">
++      <Configuration>Debug</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
+     <ProjectConfiguration Include="release_nocrypt|Win32">
+       <Configuration>release_nocrypt</Configuration>
+       <Platform>Win32</Platform>
+@@ -17,6 +21,10 @@
+       <Configuration>release_nocrypt</Configuration>
+       <Platform>x64</Platform>
+     </ProjectConfiguration>
++    <ProjectConfiguration Include="release_nocrypt|ARM64">
++      <Configuration>release_nocrypt</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
+     <ProjectConfiguration Include="Release|Win32">
+       <Configuration>Release</Configuration>
+       <Platform>Win32</Platform>
+@@ -25,6 +33,10 @@
+       <Configuration>Release</Configuration>
+       <Platform>x64</Platform>
+     </ProjectConfiguration>
++    <ProjectConfiguration Include="Release|ARM64">
++      <Configuration>Release</Configuration>
++      <Platform>ARM64</Platform>
++    </ProjectConfiguration>
+   </ItemGroup>
+   <PropertyGroup Label="Globals">
+     <ProjectName>UnRAR</ProjectName>
+@@ -68,6 +80,23 @@
+     <PlatformToolset>v140_xp</PlatformToolset>
+     <CharacterSet>MultiByte</CharacterSet>
+   </PropertyGroup>
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release_nocrypt|ARM64'" Label="Configuration">
++    <ConfigurationType>DynamicLibrary</ConfigurationType>
++    <PlatformToolset>v140_xp</PlatformToolset>
++    <CharacterSet>MultiByte</CharacterSet>
++    <WholeProgramOptimization>false</WholeProgramOptimization>
++  </PropertyGroup>
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="Configuration">
++    <ConfigurationType>DynamicLibrary</ConfigurationType>
++    <PlatformToolset>v140_xp</PlatformToolset>
++    <CharacterSet>MultiByte</CharacterSet>
++    <WholeProgramOptimization>false</WholeProgramOptimization>
++  </PropertyGroup>
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="Configuration">
++    <ConfigurationType>DynamicLibrary</ConfigurationType>
++    <PlatformToolset>v140_xp</PlatformToolset>
++    <CharacterSet>MultiByte</CharacterSet>
++  </PropertyGroup>
+   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+   <ImportGroup Label="ExtensionSettings">
+   </ImportGroup>
+@@ -89,6 +118,15 @@
+   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+   </ImportGroup>
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='release_nocrypt|ARM64'" Label="PropertySheets">
++    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
++  </ImportGroup>
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="PropertySheets">
++    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
++  </ImportGroup>
++  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="PropertySheets">
++    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
++  </ImportGroup>
+   <PropertyGroup Label="UserMacros" />
+   <PropertyGroup>
+     <_ProjectFileVersion>14.0.24720.0</_ProjectFileVersion>
+@@ -105,6 +143,12 @@
+     <LinkIncremental>true</LinkIncremental>
+     <GenerateManifest>true</GenerateManifest>
+   </PropertyGroup>
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
++    <OutDir>build\unrardll64\$(Configuration)\</OutDir>
++    <IntDir>build\unrardll64\$(Configuration)\obj\</IntDir>
++    <LinkIncremental>true</LinkIncremental>
++    <GenerateManifest>true</GenerateManifest>
++  </PropertyGroup>
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+     <OutDir>build\unrardll32\$(Configuration)\</OutDir>
+     <IntDir>build\unrardll32\$(Configuration)\obj\</IntDir>
+@@ -117,6 +161,12 @@
+     <LinkIncremental>false</LinkIncremental>
+     <GenerateManifest>true</GenerateManifest>
+   </PropertyGroup>
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
++    <OutDir>build\unrardll64\$(Configuration)\</OutDir>
++    <IntDir>build\unrardll64\$(Configuration)\obj\</IntDir>
++    <LinkIncremental>false</LinkIncremental>
++    <GenerateManifest>true</GenerateManifest>
++  </PropertyGroup>
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release_nocrypt|Win32'">
+     <OutDir>build\unrardll32\$(Configuration)\</OutDir>
+     <IntDir>build\unrardll32\$(Configuration)\obj\</IntDir>
+@@ -129,6 +179,12 @@
+     <LinkIncremental>false</LinkIncremental>
+     <GenerateManifest>true</GenerateManifest>
+   </PropertyGroup>
++  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release_nocrypt|ARM64'">
++    <OutDir>build\unrardll64\$(Configuration)\</OutDir>
++    <IntDir>build\unrardll64\$(Configuration)\obj\</IntDir>
++    <LinkIncremental>false</LinkIncremental>
++    <GenerateManifest>true</GenerateManifest>
++  </PropertyGroup>
+   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+     <ClCompile>
+       <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
+@@ -186,6 +242,36 @@
+       <TargetMachine>MachineX64</TargetMachine>
+     </Link>
+   </ItemDefinitionGroup>
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
++    <Midl>
++      <TargetEnvironment>ARM64</TargetEnvironment>
++    </Midl>
++    <ClCompile>
++      <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
++      <Optimization>Disabled</Optimization>
++      <PreprocessorDefinitions>RARDLL;UNRAR;SILENT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <MinimalRebuild>false</MinimalRebuild>
++      <ExceptionHandling>Sync</ExceptionHandling>
++      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
++      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
++      <StructMemberAlignment>Default</StructMemberAlignment>
++      <RuntimeTypeInfo>false</RuntimeTypeInfo>
++      <PrecompiledHeader>Use</PrecompiledHeader>
++      <PrecompiledHeaderFile>rar.hpp</PrecompiledHeaderFile>
++      <WarningLevel>Level3</WarningLevel>
++      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
++      <CallingConvention>Cdecl</CallingConvention>
++      <DisableSpecificWarnings>4007;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
++      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
++    </ClCompile>
++    <Link>
++      <OutputFile>$(OutDir)unrar.dll</OutputFile>
++      <ModuleDefinitionFile>dll.def</ModuleDefinitionFile>
++      <GenerateDebugInformation>true</GenerateDebugInformation>
++      <SubSystem>Console</SubSystem>
++      <TargetMachine>MachineARM64</TargetMachine>
++    </Link>
++  </ItemDefinitionGroup>
+   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+     <ClCompile>
+       <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
+@@ -262,6 +348,45 @@
+       <TargetMachine>MachineX64</TargetMachine>
+     </Link>
+   </ItemDefinitionGroup>
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
++    <Midl>
++      <TargetEnvironment>ARM64</TargetEnvironment>
++    </Midl>
++    <ClCompile>
++      <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
++      <Optimization>MaxSpeed</Optimization>
++      <IntrinsicFunctions>true</IntrinsicFunctions>
++      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
++      <OmitFramePointers>true</OmitFramePointers>
++      <WholeProgramOptimization>false</WholeProgramOptimization>
++      <PreprocessorDefinitions>RARDLL;UNRAR;SILENT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <StringPooling>false</StringPooling>
++      <MinimalRebuild>false</MinimalRebuild>
++      <ExceptionHandling>Sync</ExceptionHandling>
++      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
++      <StructMemberAlignment>Default</StructMemberAlignment>
++      <BufferSecurityCheck>true</BufferSecurityCheck>
++      <FunctionLevelLinking>true</FunctionLevelLinking>
++      <RuntimeTypeInfo>false</RuntimeTypeInfo>
++      <PrecompiledHeader>Use</PrecompiledHeader>
++      <PrecompiledHeaderFile>rar.hpp</PrecompiledHeaderFile>
++      <WarningLevel>Level3</WarningLevel>
++      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
++      <CallingConvention>Cdecl</CallingConvention>
++      <DisableSpecificWarnings>4007;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
++      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
++    </ClCompile>
++    <Link>
++      <OutputFile>$(OutDir)unrar.dll</OutputFile>
++      <ModuleDefinitionFile>dll.def</ModuleDefinitionFile>
++      <GenerateDebugInformation>true</GenerateDebugInformation>
++      <SubSystem>Console</SubSystem>
++      <OptimizeReferences>true</OptimizeReferences>
++      <EnableCOMDATFolding>true</EnableCOMDATFolding>
++      <LinkTimeCodeGeneration />
++      <TargetMachine>MachineARM64</TargetMachine>
++    </Link>
++  </ItemDefinitionGroup>
+   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release_nocrypt|Win32'">
+     <ClCompile>
+       <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
+@@ -338,6 +463,46 @@
+       <TargetMachine>MachineX64</TargetMachine>
+     </Link>
+   </ItemDefinitionGroup>
++
++  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release_nocrypt|ARM64'">
++    <Midl>
++      <TargetEnvironment>ARM64</TargetEnvironment>
++    </Midl>
++    <ClCompile>
++      <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
++      <Optimization>MaxSpeed</Optimization>
++      <IntrinsicFunctions>true</IntrinsicFunctions>
++      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
++      <OmitFramePointers>true</OmitFramePointers>
++      <WholeProgramOptimization>false</WholeProgramOptimization>
++      <PreprocessorDefinitions>RARDLL;UNRAR;SILENT;RAR_NOCRYPT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <StringPooling>false</StringPooling>
++      <MinimalRebuild>false</MinimalRebuild>
++      <ExceptionHandling>Sync</ExceptionHandling>
++      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
++      <StructMemberAlignment>Default</StructMemberAlignment>
++      <BufferSecurityCheck>true</BufferSecurityCheck>
++      <FunctionLevelLinking>true</FunctionLevelLinking>
++      <RuntimeTypeInfo>false</RuntimeTypeInfo>
++      <PrecompiledHeader>Use</PrecompiledHeader>
++      <PrecompiledHeaderFile>rar.hpp</PrecompiledHeaderFile>
++      <WarningLevel>Level3</WarningLevel>
++      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
++      <CallingConvention>StdCall</CallingConvention>
++      <DisableSpecificWarnings>4007;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
++      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
++    </ClCompile>
++    <Link>
++      <OutputFile>$(OutDir)unrar.dll</OutputFile>
++      <ModuleDefinitionFile>dll_nocrypt.def</ModuleDefinitionFile>
++      <GenerateDebugInformation>true</GenerateDebugInformation>
++      <SubSystem>Console</SubSystem>
++      <OptimizeReferences>true</OptimizeReferences>
++      <EnableCOMDATFolding>true</EnableCOMDATFolding>
++      <LinkTimeCodeGeneration />
++      <TargetMachine>MachineARM64</TargetMachine>
++    </Link>
++  </ItemDefinitionGroup>
+   <ItemGroup>
+     <ClCompile Include="archive.cpp" />
+     <ClCompile Include="arcread.cpp" />
+@@ -362,14 +527,20 @@
+       </PrecompiledHeader>
+       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+       </PrecompiledHeader>
++      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
++      </PrecompiledHeader>
+       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+       </PrecompiledHeader>
+       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+       </PrecompiledHeader>
++      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
++      </PrecompiledHeader>
+       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='release_nocrypt|Win32'">
+       </PrecompiledHeader>
+       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='release_nocrypt|x64'">
+       </PrecompiledHeader>
++      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='release_nocrypt|ARM64'">
++      </PrecompiledHeader>
+     </ClCompile>
+     <ClCompile Include="hash.cpp" />
+     <ClCompile Include="headers.cpp" />
+@@ -382,10 +553,13 @@
+     <ClCompile Include="rarpch.cpp">
+       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
++      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">Create</PrecompiledHeader>
+       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
++      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">Create</PrecompiledHeader>
+       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='release_nocrypt|Win32'">Create</PrecompiledHeader>
+       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='release_nocrypt|x64'">Create</PrecompiledHeader>
++      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='release_nocrypt|ARM64'">Create</PrecompiledHeader>
+     </ClCompile>
+     <ClCompile Include="rarvm.cpp" />
+     <ClCompile Include="rawread.cpp" />

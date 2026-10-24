@@ -1,0 +1,37 @@
+diff --git a/dll.cpp b/dll.cpp
+index 046fbdd..ec75077 100644
+--- a/dll.cpp
++++ b/dll.cpp
+@@ -255,6 +255,8 @@ static int ReadHeader(HANDLE hArcData,RARHeaderDataEx *D,bool &RepeatRead)
+ 
+   try
+   {
++    // Report only the errors of this call, not the ones left by earlier calls.
++    ErrHandler.Clean();
+     if ((Data->HeaderSize=(int)Data->Arc.SearchBlock(HEAD_FILE))<=0)
+     {
+       if (Data->Arc.Volume && Data->Arc.GetHeaderType()==HEAD_ENDARC &&
+@@ -384,6 +386,8 @@ static int ProcessFile(HANDLE hArcData,int Operation,char *DestPath,char *DestNa
+   DataSet *Data=(DataSet *)hArcData;
+   try
+   {
++    // Report only the errors of this call, not the ones left by earlier calls.
++    ErrHandler.Clean();
+     Data->Cmd.DllError=0;
+     if (Data->OpenMode==RAR_OM_LIST || Data->OpenMode==RAR_OM_LIST_INCSPLIT ||
+         Operation==RAR_SKIP && !Data->Arc.Solid)
+diff --git a/global.hpp b/global.hpp
+index 35c6cf9..aa3e0bc 100644
+--- a/global.hpp
++++ b/global.hpp
+@@ -7,7 +7,9 @@
+   #define EXTVAR extern
+ #endif
+ 
+-EXTVAR ErrorHandler ErrHandler;
++// Each thread has its own error state, so that archives used at the same time
++// don't report each other's errors.
++EXTVAR thread_local ErrorHandler ErrHandler;
+ 
+ 
+ 

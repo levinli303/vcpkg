@@ -9,6 +9,12 @@ vcpkg_extract_source_archive(
     SOURCE_PATH
     ARCHIVE "${ARCHIVE}"
     SOURCE_BASE ${VERSION}
+    PATCHES
+        fix-unrar.patch
+        windows-arm64.patch
+        unrar-per-call-errors.patch
+        unrar-file-comment-crc.patch
+        windows-unix-utf8-names.patch
 )
 
 vcpkg_msbuild_install(
