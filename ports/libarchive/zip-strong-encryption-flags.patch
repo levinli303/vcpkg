@@ -1,0 +1,27 @@
+diff --git a/libarchive/archive_read_support_format_zip.c b/libarchive/archive_read_support_format_zip.c
+index ca89311..284b4f4 100644
+--- a/libarchive/archive_read_support_format_zip.c
++++ b/libarchive/archive_read_support_format_zip.c
+@@ -3247,7 +3247,7 @@ read_decryption_header(struct archive_read *a)
+ 	 * Read a flags field.
+ 	 */
+ 	zip->flags = archive_le16dec(p+10);
+-	switch (zip->flags & 0xf000) {
++	switch (zip->flags & 0x0003) {
+ 	case 0x0001: /* Password is required to decrypt. */
+ 	case 0x0002: /* Certificates only. */
+ 	case 0x0003: /* Password or certificate required to decrypt. */
+@@ -3258,13 +3258,6 @@ read_decryption_header(struct archive_read *a)
+ 		    "Unknown encryption flag: %u", zip->flags);
+ 		return (ARCHIVE_FAILED);
+ 	}
+-	if ((zip->flags & 0xf000) == 0 ||
+-	    (zip->flags & 0xf000) == 0x4000) {
+-		archive_set_error(&a->archive,
+-		    ARCHIVE_ERRNO_FILE_FORMAT,
+-		    "Unknown encryption flag: %u", zip->flags);
+-		return (ARCHIVE_FAILED);
+-	}
+ 
+ 	/*
+ 	 * Read an encrypted random data field.

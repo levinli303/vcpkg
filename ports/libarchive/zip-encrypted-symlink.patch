@@ -1,0 +1,34 @@
+diff --git a/libarchive/archive_read_support_format_zip.c b/libarchive/archive_read_support_format_zip.c
+index 546c90b..ca89311 100644
+--- a/libarchive/archive_read_support_format_zip.c
++++ b/libarchive/archive_read_support_format_zip.c
+@@ -1507,7 +1507,14 @@ zip_read_local_file_header(struct archive_read *a, struct archive_entry *entry,
+ 		archive_entry_set_birthtime(entry, zip_entry->btime,
+ 		    zip_entry->btime_ns);
+ 
+-	if ((zip->entry->mode & AE_IFMT) == AE_IFLNK) {
++	if ((zip->entry->mode & AE_IFMT) == AE_IFLNK &&
++	    (zip_entry->zip_flags & (ZIP_ENCRYPTED | ZIP_STRONG_ENCRYPTED))) {
++		/* The link target is encrypted, so it can only be read
++		 * with archive_read_data() once a passphrase is known. */
++		if (zip_entry_size_is_set(zip_entry))
++			archive_entry_set_size(entry,
++			    zip_entry->uncompressed_size);
++	} else if ((zip->entry->mode & AE_IFMT) == AE_IFLNK) {
+ 		size_t linkname_length;
+ 
+ 		if (zip_entry->compressed_size > 64 * 1024) {
+@@ -3553,8 +3560,11 @@ archive_read_format_zip_read_data(struct archive_read *a,
+ 	if (zip->end_of_entry)
+ 		return (ARCHIVE_EOF);
+ 
+-	/* Return EOF immediately if this is a non-regular file. */
+-	if (AE_IFREG != (zip->entry->mode & AE_IFMT))
++	/* Return EOF immediately if this is a non-regular file,
++	 * except for encrypted link targets. */
++	if (AE_IFREG != (zip->entry->mode & AE_IFMT) &&
++	    !(AE_IFLNK == (zip->entry->mode & AE_IFMT) &&
++	    (zip->entry->zip_flags & (ZIP_ENCRYPTED | ZIP_STRONG_ENCRYPTED))))
+ 		return (ARCHIVE_EOF);
+ 
+ 	__archive_read_consume(a, zip->unconsumed);

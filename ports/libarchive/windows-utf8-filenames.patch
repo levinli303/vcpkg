@@ -1,0 +1,51 @@
+diff --git a/libarchive/archive_string.c b/libarchive/archive_string.c
+index b425fdc..0104723 100644
+--- a/libarchive/archive_string.c
++++ b/libarchive/archive_string.c
+@@ -1544,28 +1544,12 @@ make_codepage_from_charset(const char *charset)
+ }
+ 
+ /*
+- * Return ANSI Code Page of current locale set by setlocale().
++ * Narrow strings use UTF-8 independently of the CRT locale.
+  */
+ static unsigned
+ get_current_codepage(void)
+ {
+-	char *locale, *p;
+-	unsigned cp;
+-
+-	locale = setlocale(LC_CTYPE, NULL);
+-	if (locale == NULL)
+-		return (GetACP());
+-	if (locale[0] == 'C' && locale[1] == '\0')
+-		return (CP_C_LOCALE);
+-	p = strrchr(locale, '.');
+-	if (p == NULL)
+-		return (GetACP());
+-	if ((strcmp(p+1, "utf8") == 0) || (strcmp(p+1, "UTF-8") == 0))
+-		return CP_UTF8;
+-	cp = my_atoi(p+1);
+-	if ((int)cp <= 0)
+-		return (GetACP());
+-	return (cp);
++	return (CP_UTF8);
+ }
+ 
+ /*
+@@ -1810,6 +1794,7 @@ archive_string_default_conversion_for_read(struct archive *a)
+ 	 * this time whatever C compiler optimized. */
+ 	if (cur_charset != NULL &&
+ 	    (a->current_codepage == CP_C_LOCALE ||
++	     a->current_codepage == CP_UTF8 ||
+ 	     a->current_codepage == a->current_oemcp))
+ 		return (NULL);/* no conversion. */
+ 
+@@ -1831,6 +1816,7 @@ archive_string_default_conversion_for_write(struct archive *a)
+ 	 * this time whatever C compiler optimized. */
+ 	if (cur_charset != NULL &&
+ 	    (a->current_codepage == CP_C_LOCALE ||
++	     a->current_codepage == CP_UTF8 ||
+ 	     a->current_codepage == a->current_oemcp))
+ 		return (NULL);/* no conversion. */
+ 
