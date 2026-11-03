@@ -1,6 +1,7 @@
 {
   "name": "plzma",
   "version-semver": "1.6.1",
+  "port-version": 1,
   "description": "PLzmaSDK is (Portable, Patched, Package, cross-P-latform) Lzma SDK",
   "homepage": "https://github.com/levinli303/PLzmaSDK",
   "dependencies": [
