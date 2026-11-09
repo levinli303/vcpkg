@@ -11,6 +11,7 @@ vcpkg_extract_source_archive(
     PATCHES
         fix-crashpad-wer.patch
         fix-wer-define.patch
+        fix-winui-access-violation.patch
         fix-usage-runtime.patch
         fix-cmake4.patch
 )
